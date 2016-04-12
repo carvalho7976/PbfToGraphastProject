@@ -181,7 +181,7 @@ public class FilterFileParser {
 		// Use default file or customized file
 		InputStreamReader reader;
 		if(filename == null) {
-			InputStream stream = getClass().getResourceAsStream("/filters.txt");
+			InputStream stream = FilterFileParser.class.getResourceAsStream("/filters.txt");
 			if(stream == null) {
 				return null;
 			}

@@ -1,27 +1,29 @@
 package br.ufc.quixada.tcc.poiReader;
 
+import net.morbz.osmonaut.osm.LatLon;
+
 public class Poi {
 	private String[] values;
-	private Coordenadas latLon;
 	private String cat;
 	private String OsmId;
+	private LatLon latLon;
 	
-	public Poi(String[] Values, String cat, String OsmId, Coordenadas latLon){
-		this.values = values;
-		this.cat = cat;
-		this.OsmId = OsmId;
-		this.latLon = latLon;
+	public Poi(String[] values2, String cat2, LatLon center, String id) {
+		this.values = values2;
+		this.cat = cat2;
+		this.latLon = center;
+		this.OsmId = id;
 	}
-	
+
 	public String toString(){
 		String val = "";
 		for(int i =0; values.length > i; i++){
 			if(values[i] != null){
-				val += values[i] + ",";
+				val += values[i] + "";
 			}
 		}
 		
-		return "Tags: " + val + "#OsmId: " + OsmId + "#cat: " + cat + "#LatLon: " + latLon.toString();
+		return "Tags: " + val + " #OsmId: " + OsmId + " #cat: " + cat + " #LatLon: " + latLon.toString();
 	}
 
 	public String[] getValues() {
@@ -31,15 +33,7 @@ public class Poi {
 	public void setValues(String[] values) {
 		this.values = values;
 	}
-
-	public Coordenadas getLatLon() {
-		return latLon;
-	}
-
-	public void setLatLon(Coordenadas latLon) {
-		this.latLon = latLon;
-	}
-
+	
 	public String getCat() {
 		return cat;
 	}
