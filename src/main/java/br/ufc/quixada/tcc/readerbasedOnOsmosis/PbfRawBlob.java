@@ -1,5 +1,5 @@
 // This software is released into the Public Domain.  See copying.txt for details.
-package br.ufc.quixada.tcc.readerGraphhoper;
+package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
 /**
  * Represents a single piece of raw blob data extracted from the PBF stream. It has not yet been

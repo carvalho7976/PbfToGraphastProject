@@ -1,5 +1,5 @@
 // This software is released into the Public Domain.  See copying.txt for details.
-package br.ufc.quixada.tcc.readerGraphhoper;
+package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
 import com.graphhopper.reader.OSMElement;
 
