@@ -19,12 +19,14 @@ package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
 import com.graphhopper.reader.OSMElement;
 
+import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
+
 /**
  * @author Nop
  */
 public interface Sink
 {
-    void process( OSMElement item );
+    void process( GenericOsmElement item );
 
     void complete();
 }

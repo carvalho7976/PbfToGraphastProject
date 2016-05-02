@@ -7,6 +7,8 @@ import com.graphhopper.util.Helper;
 import br.ufc.quixada.tcc.osm.model.FileHeaderOSM;
 import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 import br.ufc.quixada.tcc.osm.model.NodeOSM;
+import br.ufc.quixada.tcc.osm.model.RelationOSM;
+import br.ufc.quixada.tcc.osm.model.WayOSM;
 
 import org.openstreetmap.osmosis.osmbinary.Fileformat;
 import org.openstreetmap.osmosis.osmbinary.Osmformat;
@@ -170,51 +172,17 @@ public class PbfBlobDecoder implements Runnable
 
         Iterator<Integer> keysValuesIterator = nodes.getKeysValsList().iterator();
 
-        /*
-         Osmformat.DenseInfo denseInfo;
-         if (nodes.hasDenseinfo()) {
-         denseInfo = nodes.getDenseinfo();
-         } else {
-         denseInfo = null;
-         }
-         */
         long nodeId = 0;
         long latitude = 0;
         long longitude = 0;
-//		int userId = 0;
-//		int userSid = 0;
-//		long timestamp = 0;
-//		long changesetId = 0;
+
         for (int i = 0; i < idList.size(); i++)
         {
             // Delta decode node fields.
             nodeId += idList.get(i);
             latitude += latList.get(i);
             longitude += lonList.get(i);
-
-            /*
-             if (denseInfo != null) {
-             // Delta decode dense info fields.
-             userId += denseInfo.getUid(i);
-             userSid += denseInfo.getUserSid(i);
-             timestamp += denseInfo.getTimestamp(i);
-             changesetId += denseInfo.getChangeset(i);
-
-             // Build the user, but only if one exists.
-             OsmUser user;
-             if (userId >= 0) {
-             user = new OsmUser(userId, fieldDecoder.decodeString(userSid));
-             } else {
-             user = OsmUser.NONE;
-             }
-
-             entityData = new CommonEntityData(nodeId, denseInfo.getVersion(i),
-             fieldDecoder.decodeTimestamp(timestamp), user, changesetId);
-             } else {
-             entityData = new CommonEntityData(nodeId, EMPTY_VERSION, EMPTY_TIMESTAMP, OsmUser.NONE,
-             EMPTY_CHANGESET);
-             }
-             */
+            
             // Build the tags. The key and value string indexes are sequential
             // in the same PBF array. Each set of tags is delimited by an index
             // with a value of 0.
@@ -244,7 +212,7 @@ public class PbfBlobDecoder implements Runnable
                 tags.put(fieldDecoder.decodeString(keyIndex), fieldDecoder.decodeString(valueIndex));
             }
 
-            OSMNode node = new OSMNode(nodeId, ((double) latitude) / 10000000, ((double) longitude) / 10000000);
+            NodeOSM node = new NodeOSM(nodeId, ((double) latitude) / 10000000, ((double) longitude) / 10000000);
             node.setTags(tags);
 
             // Add the bound object to the results.
@@ -257,7 +225,7 @@ public class PbfBlobDecoder implements Runnable
         for (Osmformat.Way way : ways)
         {
             Map<String, String> tags = buildTags(way.getKeysList(), way.getValsList(), fieldDecoder);
-            OSMWay osmWay = new OSMWay(way.getId());
+            WayOSM osmWay = new WayOSM(way.getId());
             osmWay.setTags(tags);
 
             // Build up the list of way nodes for the way. The node ids are
@@ -275,12 +243,12 @@ public class PbfBlobDecoder implements Runnable
         }
     }
 
-    private void buildRelationMembers( OSMRelation relation,
+    private void buildRelationMembers( RelationOSM relation,
                                        List<Long> memberIds, List<Integer> memberRoles, List<Osmformat.Relation.MemberType> memberTypes,
                                        PbfFieldDecoder fieldDecoder )
     {
 
-        ArrayList<OSMRelation.Member> members = relation.getMembers();
+        ArrayList<RelationOSM.Member> members = relation.getMembers();
 
         // Ensure parallel lists are of equal size.
         if (checkData)
@@ -305,23 +273,23 @@ public class PbfBlobDecoder implements Runnable
             Osmformat.Relation.MemberType memberType = memberTypeIterator.next();
             refId += memberIdIterator.next();
 
-            int entityType = OSMRelation.Member.NODE;
+            int entityType = RelationOSM.Member.NODE;
             if (memberType == Osmformat.Relation.MemberType.WAY)
             {
-                entityType = OSMRelation.Member.WAY;
+                entityType = RelationOSM.Member.WAY;
             } else if (memberType == Osmformat.Relation.MemberType.RELATION)
             {
-                entityType = OSMRelation.Member.RELATION;
+                entityType = RelationOSM.Member.RELATION;
             }
             if (checkData)
             {
-                if (entityType == OSMRelation.Member.NODE && memberType != Osmformat.Relation.MemberType.NODE)
+                if (entityType == RelationOSM.Member.NODE && memberType != Osmformat.Relation.MemberType.NODE)
                 {
                     throw new RuntimeException("Member type of " + memberType + " is not supported.");
                 }
             }
 
-            OSMRelation.Member member = new OSMRelation.Member(entityType, refId, fieldDecoder.decodeString(memberRoleIterator.next()));
+            RelationOSM.Member member = new RelationOSM.Member(entityType, refId, fieldDecoder.decodeString(memberRoleIterator.next()));
 
             members.add(member);
         }
@@ -333,7 +301,7 @@ public class PbfBlobDecoder implements Runnable
         {
             Map<String, String> tags = buildTags(relation.getKeysList(), relation.getValsList(), fieldDecoder);
 
-            OSMRelation osmRelation = new OSMRelation(relation.getId());
+            RelationOSM osmRelation = new RelationOSM(relation.getId());
             osmRelation.setTags(tags);
 
             buildRelationMembers(osmRelation, relation.getMemidsList(), relation.getRolesSidList(),
@@ -363,7 +331,7 @@ public class PbfBlobDecoder implements Runnable
     {
         try
         {
-            decodedEntities = new ArrayList<OSMElement>();
+            decodedEntities = new ArrayList<GenericOsmElement>();
             if ("OSMHeader".equals(blobType))
             {
                 processOsmHeader(readBlobContent());
@@ -380,7 +348,7 @@ public class PbfBlobDecoder implements Runnable
         }
     }
 
-    @Override
+  
     public void run()
     {
         try

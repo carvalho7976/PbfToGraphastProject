@@ -30,7 +30,6 @@ public class PbfReader implements Runnable
         this.workers = workers;
     }
 
-    @Override
     public void run()
     {
         ExecutorService executorService = Executors.newFixedThreadPool(workers);

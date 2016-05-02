@@ -11,6 +11,8 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
+
 /**
  * Decodes all blocks from a PBF stream using worker threads, and passes the results to the
  * downstream sink.
@@ -100,7 +102,7 @@ public class PbfDecoder implements Runnable
             lock.unlock();
             try
             {
-                for (OSMElement entity : blobResult.getEntities())
+                for (GenericOsmElement entity : blobResult.getEntities())
                 {
                     sink.process(entity);
                 }
@@ -128,7 +130,7 @@ public class PbfDecoder implements Runnable
             // based on an event fired by the blob decoder.
             PbfBlobDecoderListener decoderListener = new PbfBlobDecoderListener()
             {
-                @Override
+              
                 public void error( Exception ex )
                 {
                     lock.lock();
@@ -144,8 +146,8 @@ public class PbfDecoder implements Runnable
                     }
                 }
 
-                @Override
-                public void complete( List<OSMElement> decodedEntities )
+               
+                public void complete( List<GenericOsmElement> decodedEntities )
                 {
                     lock.lock();
                     try
@@ -172,6 +174,18 @@ public class PbfDecoder implements Runnable
 
         // There are no more entities available in the PBF stream, so send all remaining data to the sink.
         sendResultsToSink(0);
+    }
+
+    public void run(){
+        lock.lock();
+        try
+        {
+            processBlobs();
+
+        } finally
+        {
+            lock.unlock();
+        }
     }
 
    

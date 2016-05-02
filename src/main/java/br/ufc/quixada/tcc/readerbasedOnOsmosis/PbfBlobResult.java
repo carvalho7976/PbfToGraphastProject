@@ -3,7 +3,8 @@ package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
 import java.util.List;
 
-import com.graphhopper.reader.OSMElement;
+
+import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 
 /**
  * Stores the results for a decoded Blob.
@@ -12,7 +13,7 @@ import com.graphhopper.reader.OSMElement;
  */
 public class PbfBlobResult
 {
-    private List<OSMElement> entities;
+    private List<GenericOsmElement> entities;
     private boolean complete;
     private boolean success;
     private Exception ex;
@@ -32,7 +33,7 @@ public class PbfBlobResult
      * <p>
      * @param decodedEntities The entities from the blob.
      */
-    public void storeSuccessResult( List<OSMElement> decodedEntities )
+    public void storeSuccessResult( List<GenericOsmElement> decodedEntities )
     {
         entities = decodedEntities;
         complete = true;
@@ -80,7 +81,7 @@ public class PbfBlobResult
      * <p>
      * @return The list of decoded entities.
      */
-    public List<OSMElement> getEntities()
+    public List<GenericOsmElement> getEntities()
     {
         return entities;
     }

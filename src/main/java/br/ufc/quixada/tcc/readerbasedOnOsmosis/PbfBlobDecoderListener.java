@@ -1,7 +1,7 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
-import com.graphhopper.reader.OSMElement;
+import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public interface PbfBlobDecoderListener
      * <p>
      * @param decodedEntities The decoded entities.
      */
-    void complete( List<OSMElement> decodedEntities );
+    void complete( List<GenericOsmElement> decodedEntities );
 
     /**
      * Notifies the listener that an error occurred during processing.

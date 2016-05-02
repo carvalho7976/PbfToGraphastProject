@@ -92,7 +92,6 @@ public class PbfStreamSplitter implements Iterator<PbfRawBlob>
         }
     }
 
-    @Override
     public boolean hasNext()
     {
         if (nextBlob == null && !eof)
@@ -103,7 +102,6 @@ public class PbfStreamSplitter implements Iterator<PbfRawBlob>
         return nextBlob != null;
     }
 
-    @Override
     public PbfRawBlob next()
     {
         PbfRawBlob result = nextBlob;
@@ -112,7 +110,6 @@ public class PbfStreamSplitter implements Iterator<PbfRawBlob>
         return result;
     }
 
-    @Override
     public void remove()
     {
         throw new UnsupportedOperationException();
