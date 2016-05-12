@@ -5,13 +5,18 @@ import gnu.trove.list.array.TLongArrayList;
 import net.morbz.osmonaut.osm.Way;
 
 public class WayOSM extends GenericOsmElement {
-	 protected final TLongList nodes = new TLongArrayList(5);
+	 private  TLongList nodes = new TLongArrayList(5);
 	 
-	 public WayOSM(long id){
+	 public void setNodes(TLongList nodes) {
+		this.nodes = nodes;
+	}
+
+	public WayOSM(long id){
 		 super(id, WAY);
 	 }
 	 
 	 public TLongList getNodes(){
 	        return nodes;
 	 }
+	 
 }

@@ -1,128 +1,124 @@
 package br.ufc.quixada.tcc.pbfReader;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.plaf.synth.SynthSeparatorUI;
-
-import org.openstreetmap.osmosis.osmbinary.*;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.DenseInfo;
+import org.openstreetmap.osmosis.osmbinary.BinaryParser;
 import org.openstreetmap.osmosis.osmbinary.Osmformat.DenseNodes;
 import org.openstreetmap.osmosis.osmbinary.Osmformat.HeaderBlock;
 import org.openstreetmap.osmosis.osmbinary.Osmformat.Node;
 import org.openstreetmap.osmosis.osmbinary.Osmformat.Relation;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.StringTable;
 import org.openstreetmap.osmosis.osmbinary.Osmformat.Way;
-import org.openstreetmap.osmosis.osmbinary.file.*;
 
-import com.graphhopper.reader.pbf.PbfDecoder;
-import com.graphhopper.reader.pbf.PbfFieldDecoder;
+import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
+import br.ufc.quixada.tcc.osm.model.NodeOSM;
+import br.ufc.quixada.tcc.osm.model.RelationOSM;
+import br.ufc.quixada.tcc.osm.model.WayOSM;
+import br.ufc.quixada.tcc.readerbasedOnOsmosis.PbfReader;
+import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
 /**
  * Demonstrates how to read a file. Reads sample.pbf from the resources folder
  * and prints details about it to the standard output.
  *
  * @author Michael Tandy
  */
-public class PbfReaderExample {
+public class PbfReaderExample implements Sink, Closeable{
+	
+	private static ArrayList<NodeOSM> nodeList = new ArrayList<NodeOSM>();
+	private static ArrayList<WayOSM> wayList = new  ArrayList<WayOSM>();
+	
+	
+
+	   
 	public static void main(String[] args) throws Exception {
 		
-		
+		Thread pbfReaderThread;
+
 		InputStream input = PbfReaderExample.class.getResourceAsStream("/luxembourg-latest.osm.pbf");
-        BlockReaderAdapter brad = new TestBinaryParser();
-        new BlockInputStream(input, brad).process();
+
+		PbfReader reader = new PbfReader(input, new PbfReaderExample(), 1);
+		pbfReaderThread = new Thread(reader, "PBF Reader");
+		pbfReaderThread.start();
+		
+		//BlockReaderAdapter brad = new TestBinaryParser();
+		//new BlockInputStream(input, brad).process();
     }
 
     private static class TestBinaryParser extends BinaryParser {
 
         @Override
         protected void parseRelations(List<Relation> rels) {
-            if (!rels.isEmpty())
-                System.out.println("Number of Relations: "+ rels.size());
-           
-//            for (Relation relation : rels) {
-//				 System.out.println("relation id " + relation.getId());
-//			}
-            Relation r = null;
+        	System.out.println(rels.size());
+          
         }
 
         @Override
         protected void parseDense(DenseNodes nodes) {
-            long lastId=0;
-            long lastLat=0;
-            long lastLon=0;
             
-            //criar um primitiveBlock com dados de input stream
-            //Osmformat.PrimitiveBlock block = Osmformat.PrimitiveBlock.parseFrom(data);
-            //pegar o primitiveBlock para criar a strintable para decodificar as chaves e valores; 
-            // PbfDecoder pbfDecoder = new PbfFieldDecoder(primitiveBlock);
-                        
-            //System.out.println("Numero de dense nodes: " + nodes.getIdCount());
-     /*       for (int i=0 ; i<nodes.getIdCount() ; i++) {
-                lastId += nodes.getId(i);
-                lastLat += nodes.getLat(i);
-                lastLon += nodes.getLon(i);
-                
-                int key = nodes.getKeysVals(i);
-                if(key > 0)
-                	System.out.println("key_val " + key);
-                
-                //System.out.printf("Dense node, ID %d @ %.6f,%.6f\n",lastId,parseLat(lastLat),parseLon(lastLon));
-            }*/
-            List<Integer> keys = nodes.getKeysValsList();
-            for (Integer key : keys) {
-            	if(key > 0)
-            	   System.out.println("keys " + key);
-				
-			}
-        }
+       }
 
         @Override
         protected void parseNodes(List<Node> nodes) {
-        	if(!nodes.isEmpty())
-        		System.out.println("Numero de regular nodes: " + nodes.size());
-            for (Node n : nodes) {
-            	
-            	
-              /*  System.out.printf("Regular node, ID %d @ %.6f,%.6f\n",
-                        n.getId(),parseLat(n.getLat()),parseLon(n.getLon()));*/
-            }
         }
 
         @Override
         protected void parseWays(List<Way> ways) {
-        	
-            //System.out.println("Numero de ways: " + ways.size());
-        	/*for (Way w : ways) {
-                System.out.println("Way ID " + w.getId());
-                StringBuilder sb = new StringBuilder();
-                sb.append("  Nodes: ");
-                long lastRef = 0;
-                for (Long ref : w.getRefsList()) {
-                    lastRef+= ref;
-                    sb.append(lastRef).append(" ");
-                }
-                sb.append("\n  Key=value pairs: ");
-                for (int i=0 ; i<w.getKeysCount() ; i++) {
-                    sb.append(getStringById(w.getKeys(i))).append("=")
-                            .append(getStringById(w.getVals(i))).append(" ");
-                }
-                System.out.println(sb.toString());
-            }*/
+        	for (Way way : ways) {
+				WayOSM wayOsm = new WayOSM(way.getId());
+        	}
         }
 
         @Override
         protected void parse(HeaderBlock header) {
-            System.out.println("Got header block.");
-            System.out.println("header " + header.getSource());
-            
+                       
         }
 
         public void complete() {
-            System.out.println("Complete!");
+            System.out.println("Numero de nós: " + nodeList.size());
         }
 
 		
 
     }
+
+    
+	public void close() throws IOException {
+		System.out.println("fechou garoto");
+		
+	}
+	
+	public void complete() {
+		System.out.println("terminei garoto");
+		
+	}
+
+	public void process(GenericOsmElement item) {
+		
+		if(item != null){
+			
+			switch (item.getType()) {
+				case  GenericOsmElement.NODE:
+					NodeOSM node = (NodeOSM) item;
+					if(node.toString().length() > 2)
+						System.out.println("Nó: " + node.toString());					
+					break;
+				case GenericOsmElement.WAY:
+					WayOSM way = (WayOSM) item;
+					System.out.println("way: " + way.toString());
+					//TODO
+					break;
+				case GenericOsmElement.RELATION:
+					RelationOSM rel = (RelationOSM) item;
+					System.out.println("relation: " + rel.toString());
+					break;
+			default:
+				break;
+			}
+		}
+		
+	}
 
 }

@@ -1,26 +1,30 @@
 // This software is released into the Public Domain.  See copying.txt for details.
 package br.ufc.quixada.tcc.readerbasedOnOsmosis;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.DataFormatException;
+import java.util.zip.Inflater;
+
+import org.openstreetmap.osmosis.osmbinary.Fileformat;
+import org.openstreetmap.osmosis.osmbinary.Osmformat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.graphhopper.util.Helper;
 
 import br.ufc.quixada.tcc.osm.model.FileHeaderOSM;
 import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 import br.ufc.quixada.tcc.osm.model.NodeOSM;
 import br.ufc.quixada.tcc.osm.model.RelationOSM;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
-
-import org.openstreetmap.osmosis.osmbinary.Fileformat;
-import org.openstreetmap.osmosis.osmbinary.Osmformat;
 import gnu.trove.list.TLongList;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.zip.DataFormatException;
-import java.util.zip.Inflater;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Converts PBF block data into decoded entities ready to be passed into an Osmosis pipeline. This
@@ -89,12 +93,12 @@ public class PbfBlobDecoder implements Runnable
         // Build the list of active and unsupported features in the file.
         List<String> supportedFeatures = Arrays.asList("OsmSchema-V0.6", "DenseNodes");
         List<String> unsupportedFeatures = new ArrayList<String>();
-        for (String feature : header.getRequiredFeaturesList()) {
+     /* for (String feature : header.getRequiredFeaturesList()) {
             if (supportedFeatures.contains(feature)){
             } else{
                 unsupportedFeatures.add(feature);
             }
-        }
+        }*/
 
         // We can't continue if there are any unsupported features. We wait
         // until now so that we can display all unsupported features instead of
