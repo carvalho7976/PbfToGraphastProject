@@ -129,8 +129,7 @@ public class PbfBlobDecoder implements Runnable
 
         Iterator<Integer> keyIterator = keys.iterator();
         Iterator<Integer> valueIterator = values.iterator();
-        if (keyIterator.hasNext())
-        {
+        if (keyIterator.hasNext()) {
             Map<String, String> tags = new HashMap<String, String>(keys.size());
             while (keyIterator.hasNext())
             {

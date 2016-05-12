@@ -2,7 +2,6 @@ package br.ufc.quixada.tcc.osm.model;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
-import net.morbz.osmonaut.osm.Way;
 
 public class WayOSM extends GenericOsmElement {
 	 private  TLongList nodes = new TLongArrayList(5);

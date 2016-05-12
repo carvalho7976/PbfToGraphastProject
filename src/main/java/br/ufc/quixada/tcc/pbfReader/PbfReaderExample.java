@@ -3,15 +3,6 @@ package br.ufc.quixada.tcc.pbfReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.openstreetmap.osmosis.osmbinary.BinaryParser;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.DenseNodes;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.HeaderBlock;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.Node;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.Relation;
-import org.openstreetmap.osmosis.osmbinary.Osmformat.Way;
 
 import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 import br.ufc.quixada.tcc.osm.model.NodeOSM;
@@ -19,6 +10,8 @@ import br.ufc.quixada.tcc.osm.model.RelationOSM;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.PbfReader;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
 /**
  * Demonstrates how to read a file. Reads sample.pbf from the resources folder
  * and prints details about it to the standard output.
@@ -26,13 +19,8 @@ import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
  * @author Michael Tandy
  */
 public class PbfReaderExample implements Sink, Closeable{
-	
-	private static ArrayList<NodeOSM> nodeList = new ArrayList<NodeOSM>();
-	private static ArrayList<WayOSM> wayList = new  ArrayList<WayOSM>();
-	
-	
-
-	   
+		
+		   
 	public static void main(String[] args) throws Exception {
 		
 		Thread pbfReaderThread;
@@ -45,44 +33,7 @@ public class PbfReaderExample implements Sink, Closeable{
 		
 		//BlockReaderAdapter brad = new TestBinaryParser();
 		//new BlockInputStream(input, brad).process();
-    }
-
-    private static class TestBinaryParser extends BinaryParser {
-
-        @Override
-        protected void parseRelations(List<Relation> rels) {
-        	System.out.println(rels.size());
-          
-        }
-
-        @Override
-        protected void parseDense(DenseNodes nodes) {
-            
-       }
-
-        @Override
-        protected void parseNodes(List<Node> nodes) {
-        }
-
-        @Override
-        protected void parseWays(List<Way> ways) {
-        	for (Way way : ways) {
-				WayOSM wayOsm = new WayOSM(way.getId());
-        	}
-        }
-
-        @Override
-        protected void parse(HeaderBlock header) {
-                       
-        }
-
-        public void complete() {
-            System.out.println("Numero de nós: " + nodeList.size());
-        }
-
-		
-
-    }
+    }  
 
     
 	public void close() throws IOException {
@@ -102,17 +53,24 @@ public class PbfReaderExample implements Sink, Closeable{
 			switch (item.getType()) {
 				case  GenericOsmElement.NODE:
 					NodeOSM node = (NodeOSM) item;
-					if(node.toString().length() > 2)
-						System.out.println("Nó: " + node.toString());					
+					//if(node.toString().length() > 2)
+						//System.out.println("Nó: " + node.toString());					
 					break;
 				case GenericOsmElement.WAY:
-					WayOSM way = (WayOSM) item;
-					System.out.println("way: " + way.toString());
+					WayOSM way = (WayOSM) item;					
+					TLongList nos = way.getNodes();
+					System.out.print("way:");
+					for (int i = 0; i < nos.size(); i++) {
+						System.out.print(" " + nos.get(i) + " ");
+					}
+					System.out.println("====================");
+					
+					//System.out.println("way: " + way.toString());
 					//TODO
 					break;
 				case GenericOsmElement.RELATION:
 					RelationOSM rel = (RelationOSM) item;
-					System.out.println("relation: " + rel.toString());
+					//System.out.println("relation: " + rel.toString());
 					break;
 			default:
 				break;
