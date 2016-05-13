@@ -2,7 +2,6 @@ package br.ufc.quixada.tcc.osm.model;
 
 import java.util.ArrayList;
 
-import com.graphhopper.reader.OSMRelation.Member;
 
 public class RelationOSM extends GenericOsmElement {
 	protected final ArrayList<Member> members = new ArrayList<Member>(5);

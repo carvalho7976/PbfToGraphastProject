@@ -9,13 +9,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 import org.openstreetmap.osmosis.osmbinary.Fileformat;
 import org.openstreetmap.osmosis.osmbinary.Osmformat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -32,9 +31,7 @@ import gnu.trove.list.TLongList;
  * <p>
  * @author Brett Henderson
  */
-public class PbfBlobDecoder implements Runnable
-{
-    private static final Logger log = LoggerFactory.getLogger(PbfBlobDecoder.class);
+public class PbfBlobDecoder implements Runnable {
     private final boolean checkData = false;
     private final String blobType;
     private final byte[] rawBlob;
@@ -322,7 +319,7 @@ public class PbfBlobDecoder implements Runnable
 
         for (Osmformat.PrimitiveGroup primitiveGroup : block.getPrimitivegroupList())
         {
-            log.debug("Processing OSM primitive group.");
+           
             processNodes(primitiveGroup.getDense(), fieldDecoder);
             processNodes(primitiveGroup.getNodesList(), fieldDecoder);
             processWays(primitiveGroup.getWaysList(), fieldDecoder);
@@ -343,8 +340,7 @@ public class PbfBlobDecoder implements Runnable
             {
                 processOsmPrimitives(readBlobContent());
 
-            } else if (log.isDebugEnabled())
-                log.debug("Skipping unrecognised blob type " + blobType);
+            } 
         } catch (IOException e)
         {
             throw new RuntimeException("Unable to process PBF blob", e);

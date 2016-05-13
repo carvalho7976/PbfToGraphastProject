@@ -7,16 +7,23 @@
 	<description>Extração de dados osm para o framework Graphast</description>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.openstreetmap.osmosis</groupId>
-			<artifactId>osmosis-osm-binary</artifactId>
-			<version>0.44.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.graphast</groupId>
-			<artifactId>graphast-core</artifactId>
-			<version>0.1.5</version>
-		</dependency>
+	<dependency>
+		<groupId>org.openstreetmap.osmosis</groupId>
+		<artifactId>osmosis-osm-binary</artifactId>
+		<version>0.44.1</version>
+	</dependency>
+	<dependency>
+		<groupId>net.sf.trove4j</groupId>
+		<artifactId>trove4j</artifactId>
+		<version>3.0.1</version>
+	</dependency>
+	<dependency>
+	<groupId>it.unimi.dsi</groupId>
+	<artifactId>fastutil</artifactId>
+	<version>6.3</version>
+</dependency>
+	
+		
 
 	</dependencies>
 
