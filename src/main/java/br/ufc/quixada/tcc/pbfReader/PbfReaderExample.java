@@ -63,9 +63,10 @@ public class PbfReaderExample implements Sink, Closeable{
 		String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
 		
 		graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
-		GraphBounds graph = (GraphBounds) new GraphImpl(graphastTmpDir);
+		GraphBounds graph = new GraphImpl(graphastTmpDir);
 		
 		graph = addNodesToGraph(graph);
+		System.out.println("adicionou nos");
 		
 		graph = criarEdges(graph);
 		
@@ -75,7 +76,7 @@ public class PbfReaderExample implements Sink, Closeable{
 
 	private GraphBounds addNodesToGraph(GraphBounds graph) {
 		for(int i = 0; i < todosNos.size64(); i++){
-			graph.addNode(todosNos.get(i));
+			 graph.addNode(todosNos.get(i));
 		}
 		return graph;
 		
@@ -87,13 +88,19 @@ public class PbfReaderExample implements Sink, Closeable{
 		for(int i = 0; todosWay.size64() > i; i++){
 			WayOSM way = todosWay.get(i);
 			
-			Edge edge = createEdgeFromWay(way);
-			graph.addEdge(edge);
+			System.out.println(way.toString());
+			
+			Edge edge = createEdgeFromWay(way, i);
+			
+			System.out.println("edge " + i);
+			
+			if(edge != null)
+				graph.addEdge(edge);
 		}
 		
 		return graph;
 	}
-	private Edge createEdgeFromWay(WayOSM way){
+	private Edge createEdgeFromWay(WayOSM way, long id){
 		
 		TLongList nodes = way.getNodes();
 		if(nodes.size() > 2){
@@ -106,19 +113,24 @@ public class PbfReaderExample implements Sink, Closeable{
 						Point p = new Point(node.getLatitude(), node.getLongitude());
 						geometry.add(p);
 					}
-								
 				}
-				return  new EdgeImpl(nodes.get(0), nodes.get(0),nodes.get(nodes.size()-1), 1, "teste", geometry);
+				return  new EdgeImpl(id, nodes.get(0),nodes.get(nodes.size()-1), 1, "teste", geometry);
 			}			
 			
-		}		
+		}
+		System.out.println("edge nulo");
 		
 		return null;
 	}
 	private Node getNodeByID(long nodeId){
+		
 		for(int i = 0; i < todosNos.size64(); i++){
-			if(todosNos.get(i).getId() == nodeId)
+			
+			if(todosNos.get(i).getId() == nodeId){
+				//System.out.println(todosNos.get(i).toString());
 				return todosNos.get(i);
+			}
+				
 		}
 		return null;
 	}
