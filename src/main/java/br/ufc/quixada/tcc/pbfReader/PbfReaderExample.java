@@ -25,6 +25,7 @@ import br.ufc.quixada.tcc.osm.model.RelationOSM;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.PbfReader;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
+import br.ufc.quixada.tcc.repository.EdgeGenerator;
 import br.ufc.quixada.tcc.repository.NodeRepository;
 import br.ufc.quixada.tcc.repository.Repository;
 import br.ufc.quixada.tcc.repository.RepositoryAbsctract;
@@ -34,8 +35,9 @@ import it.unimi.dsi.fastutil.objects.ObjectBigArrayBigList;
 
 public class PbfReaderExample implements Sink, Closeable{
 	
-	private static String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
-	private static GraphBounds graph;
+	public static String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
+	public static GraphBounds graph;
+	public static long idEdgesTest = 1;
 
 	public  Logger logger = LoggerFactory.getLogger(this.getClass());
 	public static Repository nodesList = new NodeRepository();
@@ -56,8 +58,6 @@ public class PbfReaderExample implements Sink, Closeable{
 		PbfReader reader = new PbfReader(input, new PbfReaderExample(), 4);
 		pbfReaderThread = new Thread(reader, "PBF Reader");
 		pbfReaderThread.start();
-		
-	
     }  
 
     
@@ -69,7 +69,15 @@ public class PbfReaderExample implements Sink, Closeable{
 	public void complete() {
 		logger.info("nodes added " + nodesList.getAll().size64());
 		logger.info("ways added " + wayList.getAll().size64());
+
+		EdgeGenerator test = new EdgeGenerator();
 		
+		long size = wayList.getAll().size64();
+		for(long i = 0; i < size; i++){
+			test.createBaseAndAdjNodes((WayOSM)wayList.findByIndex(i));
+		}
+		System.out.println("base nodes " + test.getBaseNodesIds().size());
+		System.out.println("adj nodes " + test.getAdjNodesIds().size());
 	
 	}
 

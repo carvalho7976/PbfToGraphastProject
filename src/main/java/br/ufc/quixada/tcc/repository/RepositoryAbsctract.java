@@ -15,8 +15,15 @@ public abstract class RepositoryAbsctract implements Repository{
 	}
 
 	public GenericOsmElement find(long id) {
-		// TODO Auto-generated method stub
+		for (GenericOsmElement genericOsmElement : listaDeElementos) {
+			if(genericOsmElement.getId() == id)
+				return genericOsmElement;
+		}
+
 		return null;
+	}
+	public GenericOsmElement findByIndex(long index){
+		return listaDeElementos.get(index);
 	}
 
 	public ObjectBigArrayBigList<GenericOsmElement> getAll() {
