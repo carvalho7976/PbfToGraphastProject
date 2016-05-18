@@ -38,8 +38,8 @@ public class EdgeGenerator {
 			NodeOSM tempFromNode = (NodeOSM) PbfReaderExample.nodesList.find(nodeList.get(0));
 			NodeOSM tempToNode = (NodeOSM) PbfReaderExample.nodesList.find(nodeList.get(nodeList.size()-1));
 			
+			
 			NodeImpl fromNode, toNode;
-			logger.info(" id node " + tempFromNode.getId());
 			fromNode = new NodeImpl(tempFromNode.getId(), tempFromNode.getLat(), tempFromNode.getLon());
 			toNode = new NodeImpl(tempToNode.getId(), tempToNode.getLat(), tempToNode.getLon());
 			
@@ -50,24 +50,17 @@ public class EdgeGenerator {
 			
 			for(int i =0; i < nodeList.size(); i++) {
 				NodeOSM tempNode = (NodeOSM) PbfReaderExample.nodesList.find(nodeList.get(i));
-				
-				double latitute = tempNode.getLat();
-				double longitude = tempNode.getLon();
-				logger.info("Lat " + latitute + "Long " + longitude);
-				
 				Point p = new Point(tempNode.getLat(),tempNode.getLon());
 				geometry.add(p);
 			}
-			logger.info(nodeList.get(0) + " " + nodeList.get(nodeList.size()-1));
-			EdgeImpl edge = createEdges(nodeList.get(0), nodeList.get(nodeList.size()-1), geometry);
+			EdgeImpl edge = createEdges(way.getId(),fromNode.getId(), toNode.getId(), geometry);
 			PbfReaderExample.graph.addEdge(edge);
 			PbfReaderExample.graph.save();
-			logger.info("edge adicionado");
-			
+		
 		}		
 	}
-	public EdgeImpl createEdges(long fromNode, long toNode, List<Point> geometry){
-		EdgeImpl edge = new EdgeImpl(PbfReaderExample.idEdgesTest++, fromNode, toNode, 1, "teste", geometry);
+	public EdgeImpl createEdges(long externalId, long fromNode, long toNode, List<Point> geometry){
+		EdgeImpl edge = new EdgeImpl(externalId, fromNode, toNode, 1, "teste", geometry);
 		return edge;
 	}
 

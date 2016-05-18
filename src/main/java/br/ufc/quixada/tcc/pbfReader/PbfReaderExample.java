@@ -53,7 +53,7 @@ public class PbfReaderExample implements Sink, Closeable{
 
 		Thread pbfReaderThread;
 
-		InputStream input = PbfReaderExample.class.getResourceAsStream("/luxembourg-latest.osm.pbf");
+		InputStream input = PbfReaderExample.class.getResourceAsStream("/monaco-latest.osm.pbf");
 
 		PbfReader reader = new PbfReader(input, new PbfReaderExample(), 4);
 		pbfReaderThread = new Thread(reader, "PBF Reader");
@@ -76,8 +76,8 @@ public class PbfReaderExample implements Sink, Closeable{
 		for(long i = 0; i < size; i++){
 			test.createBaseAndAdjNodes((WayOSM)wayList.findByIndex(i));
 		}
-		System.out.println("base nodes " + test.getBaseNodesIds().size());
-		System.out.println("adj nodes " + test.getAdjNodesIds().size());
+		logger.info("nodes " + graph.getNodes().size64());
+		logger.info("edges " + graph.getEdges().size64());
 	
 	}
 
