@@ -3,35 +3,22 @@ package br.ufc.quixada.tcc.pbfReader;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.graphast.config.Configuration;
-import org.graphast.geometry.Point;
-import org.graphast.importer.OSMImporterImpl;
-import org.graphast.model.Edge;
-import org.graphast.model.EdgeImpl;
 import org.graphast.model.GraphBounds;
 import org.graphast.model.GraphImpl;
-import org.graphast.model.Node;
-import org.graphast.model.NodeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.NodeList;
 
 import br.ufc.quixada.tcc.osm.model.GenericOsmElement;
 import br.ufc.quixada.tcc.osm.model.NodeOSM;
-import br.ufc.quixada.tcc.osm.model.RelationOSM;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.PbfReader;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
 import br.ufc.quixada.tcc.repository.EdgeGenerator;
 import br.ufc.quixada.tcc.repository.NodeRepository;
 import br.ufc.quixada.tcc.repository.Repository;
-import br.ufc.quixada.tcc.repository.RepositoryAbsctract;
 import br.ufc.quixada.tcc.repository.WayRepository;
-import gnu.trove.list.TLongList;
-import it.unimi.dsi.fastutil.objects.ObjectBigArrayBigList;
 
 public class PbfReaderExample implements Sink, Closeable{
 	

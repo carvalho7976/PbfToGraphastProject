@@ -62,6 +62,9 @@ public class GenericOsmElement {
 	public boolean isType( int type ){
 		return this.type == type;
 	}
+	public boolean hasTags() {
+        return !properties.isEmpty();
+    }
 
 	@Override
 	public String toString(){
