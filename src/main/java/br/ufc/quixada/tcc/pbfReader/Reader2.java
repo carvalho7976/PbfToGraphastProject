@@ -18,17 +18,20 @@ import br.ufc.quixada.tcc.osm.model.OSMInputFile;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
 import br.ufc.quixada.tcc.repository.NodeRepository;
 import br.ufc.quixada.tcc.repository.Repository;
+import br.ufc.quixada.tcc.test.TestImport;
 import gnu.trove.list.TLongList;
 import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 
-public class Reader {
+public class Reader2 {
 	private static int workers = 4;
 
 	protected static final int EMPTY = -1;
 	// pillar node is >= 3
 	protected static final int PILLAR_NODE = 1;
 	// tower node is <= -3
-	protected static final int TOWER_NODE = -2;
+	protected static final int TOWER_NODE = 2;
+	
+	protected static int countWay = 0;
 	
 	public static Repository nodesList = new NodeRepository();
 	public  Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -40,7 +43,7 @@ public class Reader {
 	private GraphImpl graph;
 	private String graphastTmpDir;
 
-	public Reader(File osmFile, String graphHastTmpDir) {
+	public Reader2(File osmFile, String graphHastTmpDir) {
 		this.graphastTmpDir = graphHastTmpDir;
 		this.osmFile = osmFile;
 		osmNodeIdToInternalNodeMap = new Long2IntArrayMap();
@@ -55,8 +58,10 @@ public class Reader {
 		
 		logger.info("creating graph");
 		createGraph(osmFile);
-		
-		return this.graph;
+		graph.save();
+		logger.info("nodes " + graph.getNumberOfNodes());
+		logger.info("edges " + graph.getNumberOfEdges());
+		return graph;
 	}
 	void processHighWays(File osmFile) throws IOException{
 
@@ -75,7 +80,8 @@ public class Reader {
 					final WayOSM way = (WayOSM) item;
 
 					//ignore broken or complex geometry
-					if (way.getNodes().size() > 2 && way.hasTags()){
+					if (way.getNodes().size() > 2 && way.hasTags() && way.hasTag("highway")){
+						
 						TLongList wayNodes = way.getNodes();
 						int s = wayNodes.size();
 						for (int index = 0; index < s; index++){
@@ -115,7 +121,6 @@ public class Reader {
 						addNode((NodeOSM) item);
 					}
 					break;
-
 				case GenericOsmElement.WAY:
 					if (wayStart < 0){
 						wayStart = counter;
@@ -145,14 +150,13 @@ public class Reader {
 
 	}
 	void prepareHighwayNode( long osmId ){
-		int tmpIndex = getNodeMap().get(osmId);
-		if (tmpIndex == EMPTY){
-			// osmId is used exactly once
-			getNodeMap().put(osmId, PILLAR_NODE);
-		} else if (tmpIndex > EMPTY){
-			// mark node as tower node as it occured at least twice times
+		
+		if(getNodeMap().containsKey(osmId)){
 			getNodeMap().put(osmId, TOWER_NODE);
+		}else{
+			getNodeMap().put(osmId, PILLAR_NODE);
 		}
+		
 	}
 
 	boolean addNode( NodeOSM node ) {
@@ -296,9 +300,6 @@ public class Reader {
 			if(tempNode != null){
 				Point p = new Point(tempNode.getLat(),tempNode.getLon());
 				geometry.add(p);
-				logger.info("não nulos " + naoNulo++);
-			}else{
-				logger.info("nulos " + nulo++);
 			}
 			
 		}

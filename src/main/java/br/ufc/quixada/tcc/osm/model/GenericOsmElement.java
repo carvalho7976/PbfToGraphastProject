@@ -65,6 +65,15 @@ public class GenericOsmElement {
 	public boolean hasTags() {
         return !properties.isEmpty();
     }
+	public boolean hasTag(String key){
+		if(properties.containsKey(key)){
+			String tag = properties.get(key).toString();
+			if(tag.equals("footway")){
+				return false;
+			}
+		}
+		return properties.containsKey(key);
+	}
 
 	@Override
 	public String toString(){
