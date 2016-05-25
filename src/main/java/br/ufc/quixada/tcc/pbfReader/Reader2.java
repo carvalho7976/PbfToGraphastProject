@@ -23,7 +23,6 @@ import br.ufc.quixada.tcc.repository.Repository;
 import gnu.trove.list.TLongList;
 import gnu.trove.map.hash.TLongLongHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 
 public class Reader2 {
@@ -91,7 +90,7 @@ public class Reader2 {
 					final WayOSM way = (WayOSM) item;
 
 					//ignore broken or complex geometry
-					if (way.getNodes().size() > 2 && way.hasTags() && way.hasTag("highway")){
+					if (way.getNodes().size() > 2 && way.hasTags() && way.hasTagFilter("highway")){
 						
 						TLongList wayNodes = way.getNodes();
 						int s = wayNodes.size();
@@ -111,8 +110,6 @@ public class Reader2 {
 
 	void createGraph(File osmFile) throws IOException{
 
-		int tmp = (int) Math.max(getNodeMap().size() / 50, 100);
-
 		long wayStart = -1;
 		long relationStart = -1;
 		long counter = 1;
@@ -120,7 +117,6 @@ public class Reader2 {
 		try{
 
 			in = new OSMInputFile(osmFile).setWorkerThreads(workers).open();
-			Long2IntArrayMap nodeFilter = getNodeMap();
 
 			GenericOsmElement item;
 			while ((item = in.getNext()) != null)
@@ -132,6 +128,7 @@ public class Reader2 {
 					if (wayStart < 0){
 						wayStart = counter;
 					}
+					
 					processWay((WayOSM) item);
 					break;
 				case GenericOsmElement.RELATION:
@@ -154,7 +151,6 @@ public class Reader2 {
 			in.close();
 		}
 
-
 	}
 	void prepareHighwayNode( long osmId ){
 		
@@ -163,7 +159,6 @@ public class Reader2 {
 		}else{
 			getNodeMap().put(osmId, PILLAR_NODE);
 		}
-		
 	}
 	
 	void addToNodeList(NodeOSM node){
@@ -186,34 +181,39 @@ public class Reader2 {
 		// ignore multipolygon geometry
 		if (!way.hasTags())
 			return;
-
+		if(!way.hasTagFilter("highway"))
+			return;
+		
 		long wayOsmId = way.getId();
 
 		
 		List<EdgeImpl> createdEdges = new ArrayList<EdgeImpl>();
 	 
 		// no barriers - simply add the whole way
-		createdEdges.addAll(addOSMWay(way.getNodes(),wayOsmId));
+		createdEdges.addAll(addOSMWay(way.getDirection(),way.getNodes(),wayOsmId));
 		
-		
+		logger.info(way.toString());
 		for (EdgeImpl edgeImpl : createdEdges) {
 			graph.addEdge(edgeImpl);
 		}
-		graph.save();
+		
+		//graph.save();
 		
 	}
 	/**
      * This method creates from an OSM way (via the osm ids) one or more edges in the graph.
+     *	public static final int ONE_WAY = 0;
+	 	public static final int BIDIRECIONAL = 1;
+	 	public static final int REVERSE = 2;
      */
-    Collection<EdgeImpl> addOSMWay( final TLongList osmNodeIds, final long wayOsmId ){
+    Collection<EdgeImpl> addOSMWay( final int direcao,final TLongList osmNodeIds, final long wayOsmId ){
         
-    	List<Point> pointList = getGeometryFromWay(osmNodeIds);
-       
+    	       
         List<EdgeImpl> newEdges = new ArrayList<EdgeImpl>(5);
     
         try{
         	int tempIndex = 0;
-        	logger.info(" way Size " + osmNodeIds.size());
+        	
             for (int i = 1; i < osmNodeIds.size(); i++){
             	
                 long osmId = osmNodeIds.get(i);
@@ -223,8 +223,6 @@ public class Reader2 {
                     continue;
 
                 if (tmpNode == TOWER_NODE){
-                		logger.info("from " + tempIndex);
-                		logger.info("from " + i);
                 		long tmpFromNode = osmNodeIds.get(tempIndex);
                 		NodeOSM fromNode = osmNodes.get(tmpFromNode);
                 		
@@ -261,9 +259,20 @@ public class Reader2 {
                 			Point p = new Point(nodeOsm.getLat(), nodeOsm.getLon());
                 			geometry.add(p);
                 		}
-                		   EdgeImpl e = new EdgeImpl(wayOsmId, fromNodeId, toNodeId, 1, "teste", pointList);
-                		   newEdges.add(e);
-                		   logger.info("add edge");
+                		
+                		if(WayOSM.ONE_WAY == direcao){
+                		   EdgeImpl e = new EdgeImpl(wayOsmId, fromNodeId, toNodeId, 1, "teste", geometry);
+                 		   newEdges.add(e);
+                		}else if(WayOSM.BIDIRECIONAL == direcao){
+                			 EdgeImpl e = new EdgeImpl(wayOsmId, fromNodeId, toNodeId, 1, "teste", geometry);
+                			 EdgeImpl f = new EdgeImpl(wayOsmId, toNodeId, fromNodeId, 1, "teste", geometry);
+                   		   	newEdges.add(e);
+                   		   	newEdges.add(f);
+                		}else if(WayOSM.REVERSE == direcao){
+                			 EdgeImpl e = new EdgeImpl(wayOsmId, toNodeId,fromNodeId, 1, "teste", geometry);
+                			 newEdges.add(e);
+                		}
+                		   
                 		  tempIndex = i;
                 	
                     continue;
@@ -273,9 +282,67 @@ public class Reader2 {
                 }
 
             }
-        } catch (RuntimeException ex){
+            // caso o nó inicial seja tower e os outros nós sejam ponta de ramo
+            if(tempIndex == 0){
+            	long osmId = osmNodeIds.get(0);
+                int tmpNode = getNodeMap().get(osmId);
+                if(tmpNode == TOWER_NODE){
+                	long tmpFromNode = osmNodeIds.get(tempIndex);
+            		NodeOSM fromNode = osmNodes.get(tmpFromNode);
+            		
+            		long tempToNode = osmNodeIds.get(0);
+            		NodeOSM toNode = osmNodes.get(tempToNode);
+            		
+            		Node n = new NodeImpl(fromNode.getId(), fromNode.getLat(), fromNode.getLon());
+            		Node n2 = new NodeImpl(toNode.getId(), toNode.getLat(), toNode.getLon());
+            		
+            		long fromNodeId; 
+            		long toNodeId;
+            		if(!getNosnoGrafo().containsKey(tmpFromNode)){
+                   		graph.addNode(n);
+                   		getNosnoGrafo().put(tmpFromNode, n.getId());
+                   		fromNodeId = n.getId();
+                		
+            		}else{
+            			fromNodeId = getNosnoGrafo().get(tmpFromNode);               			
+            		}
+            		
+            		if(!getNosnoGrafo().containsKey(tempToNode)){
+            			graph.addNode(n2);
+            			getNosnoGrafo().put(tempToNode, n2.getId());
+            			toNodeId = n2.getId();
+            		}else{
+            			toNodeId = getNosnoGrafo().get(tempToNode);       
+            		}
+            		List<Point> geometry = new ArrayList<Point>();
+            		
+            		for(int j = 0; j <osmNodeIds.size();j++){
+            			long tmpId = osmNodeIds.get(j);
+            			NodeOSM nodeOsm = osmNodes.get(tmpId);
+            			Point p = new Point(nodeOsm.getLat(), nodeOsm.getLon());
+            			geometry.add(p);
+            		}
+            		
+            		if(WayOSM.ONE_WAY == direcao){
+             		   EdgeImpl e = new EdgeImpl(wayOsmId, fromNodeId, toNodeId, 1, "teste", geometry);
+              		   newEdges.add(e);
+             		}else if(WayOSM.BIDIRECIONAL == direcao){
+             			 EdgeImpl e = new EdgeImpl(wayOsmId, fromNodeId, toNodeId, 1, "teste", geometry);
+             			 EdgeImpl f = new EdgeImpl(wayOsmId, toNodeId, fromNodeId, 1, "teste", geometry);
+                		   	newEdges.add(e);
+                		   	newEdges.add(f);
+             		}else if(WayOSM.REVERSE == direcao){
+             			 EdgeImpl e = new EdgeImpl(wayOsmId, toNodeId,fromNodeId, 1, "teste", geometry);
+             			 newEdges.add(e);
+             		}
+            		
+                }
+            }
+            
+        } catch (Exception ex){
             logger.info(ex.toString());
         }
+       
         return newEdges;
     }
     EdgeImpl addEdge( int fromIndex, int toIndex, List<Point> pointList, long wayOsmId )
@@ -285,18 +352,15 @@ public class Reader2 {
             throw new AssertionError("to or from index is invalid for this edge " + fromIndex + "->" + toIndex + ", points:" + pointList);
         
         
-        double towerNodeDistance = 0;
-        double lat, lon, ele = Double.NaN;
+        double lat, lon = Double.NaN;
         
         ArrayList<Point> pillarNodes = new ArrayList<Point>(pointList.size()-2);
         int nodes = pointList.size();
         
         for (int i = 1; i < nodes; i++){
-            // we could save some lines if we would use pointList.calcDistance(distCalc);
             lat = pointList.get(i).getLatitude();
             lon = pointList.get(i).getLongitude();
             if (nodes > 2 && i < nodes - 1){
-            	
                 pillarNodes.add(new Point(lat, lon));
             }
         }
@@ -307,21 +371,7 @@ public class Reader2 {
         return iter;
     }
     
-    private List<Point> getGeometryFromWay(TLongList nodeList){
-    	
-    	List<Point> geometry = new ArrayList<Point>();
-    	int nulo = 0;
-    	int naoNulo = 0;
-    	for(int i =0; i < nodeList.size(); i++) {
-			NodeOSM tempNode = (NodeOSM) nodesList.find(nodeList.get(i));
-			if(tempNode != null){
-				Point p = new Point(tempNode.getLat(),tempNode.getLon());
-				geometry.add(p);
-			}
-			
-		}
-    	return geometry;
-    }
+    
     private TLongLongHashMap getNosnoGrafo(){
     	return nosNoGrafo;
     }

@@ -65,14 +65,18 @@ public class GenericOsmElement {
 	public boolean hasTags() {
         return !properties.isEmpty();
     }
+	
 	public boolean hasTag(String key){
+		return properties.containsKey(key);
+	}
+	//sem filtro 
+	public boolean containsTagEqual(String key, String value){
 		if(properties.containsKey(key)){
-			String tag = properties.get(key).toString();
-			if(tag.equals("footway")){
-				return false;
+			if(properties.get(key).toString().equals(value)){
+				return true;
 			}
 		}
-		return properties.containsKey(key);
+		return false;
 	}
 
 	@Override

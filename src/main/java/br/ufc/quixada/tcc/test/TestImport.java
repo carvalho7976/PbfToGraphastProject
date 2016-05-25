@@ -22,13 +22,13 @@ public class TestImport {
 		TestImport t = new TestImport();
 		 String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
 		 
-		// OSMImporterImpl test = new OSMImporterImpl("monaco-latest.osm.pbf", graphastTmpDir);
-		 //test.execute();
+		//OSMImporterImpl test = new OSMImporterImpl("monaco-latest.osm.pbf", graphastTmpDir);
+		//test.execute();
 		
-		File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
-		if(file != null){
-			 Reader2 r = new Reader2(file, graphastTmpDir);
-			 r.execute();
+	File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
+	if(file != null){
+		 Reader2 r = new Reader2(file, graphastTmpDir);
+		 r.execute();
 		}
 		
 		
