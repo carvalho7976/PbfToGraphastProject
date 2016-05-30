@@ -43,7 +43,7 @@ public class GenericOsmElement {
                 setTag(e.getKey(), e.getValue());
             }
     }
-	protected Map<String, Object> getTags() {
+	public Map<String, Object> getTags() {
 	        return properties;
 	}
 
@@ -78,7 +78,16 @@ public class GenericOsmElement {
 		}
 		return false;
 	}
-
+	
+	public String getTagValue(String key){
+		try{
+			return properties.get(key).toString();
+		}catch(Exception e){
+			return null;
+		}
+		
+	}
+	
 	@Override
 	public String toString(){
 		return properties.toString();
