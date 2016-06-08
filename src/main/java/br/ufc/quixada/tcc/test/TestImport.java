@@ -11,6 +11,9 @@ import java.net.URISyntaxException;
 
 import org.graphast.config.Configuration;
 import org.graphast.importer.OSMImporterImpl;
+import org.graphast.model.Graph;
+import org.graphast.model.GraphBounds;
+import org.graphast.model.GraphImpl;
 
 import br.ufc.quixada.tcc.pbfReader.Reader2;
 
@@ -21,18 +24,24 @@ public class TestImport {
 		
 		TestImport t = new TestImport();
 		 String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
+
+		// OSMImporterImpl test = new OSMImporterImpl("berlin_small_slice.osm.pbf", graphastTmpDir);
+		// GraphBounds bounds = test.execute();
+		//bounds.save();
 		 
-		//OSMImporterImpl test = new OSMImporterImpl("monaco-latest.osm.pbf", graphastTmpDir);
-		//test.execute();
 		
+	
 	File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
 	if(file != null){
 		 Reader2 r = new Reader2(file, graphastTmpDir);
-		 r.execute();
-		}
+		 
+		 GraphBounds bounds = r.execute();
+		 bounds.save();
+	} 
 		
-		
-
+		 
+		 Graph graph = new GraphImpl(Configuration.USER_HOME + "/graphast/tmp/osmimporter");
+		graph.load();
 	}
 	public File createDataFile(String dataFileName) {
 		try {

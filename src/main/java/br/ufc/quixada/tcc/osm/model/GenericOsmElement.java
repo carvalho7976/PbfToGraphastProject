@@ -78,7 +78,9 @@ public class GenericOsmElement {
 		}
 		return false;
 	}
-	
+	public boolean containsValue(String value){
+		return properties.containsValue(value);
+	}
 	public String getTagValue(String key){
 		try{
 			return properties.get(key).toString();

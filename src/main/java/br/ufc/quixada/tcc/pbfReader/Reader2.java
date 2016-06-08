@@ -23,12 +23,13 @@ import br.ufc.quixada.tcc.osm.model.WayOSM;
 import br.ufc.quixada.tcc.repository.NodeRepository;
 import br.ufc.quixada.tcc.repository.Repository;
 import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongLongHashMap;
 import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 
 public class Reader2 {
-	private static int workers = 4;
+	private static int workers = 8;
 
 	protected static final int EMPTY = -1;
 	// pillar node is >= 3
@@ -65,6 +66,7 @@ public class Reader2 {
 		logger.info("creating graph");
 		createGraph(osmFile);
 		graph.save();
+	
 		logger.info("nodes " + graph.getNumberOfNodes());
 		logger.info("edges " + graph.getNumberOfEdges());
 		return graph;
@@ -78,18 +80,19 @@ public class Reader2 {
 
 			
 			GenericOsmElement item;
+			int i = 0;
 			while ((item = in.getNext()) != null){
-				//logger.info(item.toString());
+				
 
 				if(item.isType(GenericOsmElement.NODE)){
 					addToNodeList((NodeOSM) item);
 				}
 				if (item.isType(GenericOsmElement.WAY)){
-
+					
 					final WayOSM way = (WayOSM) item;
 
 					//ignore broken or complex geometry
-					if (way.getNodes().size() > 2 && way.hasTags() && way.hasTagFilter("highway")){
+					if (way.getNodes().size() >= 2 && acceptWay(way)){
 						
 						TLongList wayNodes = way.getNodes();
 						int s = wayNodes.size();
@@ -127,7 +130,6 @@ public class Reader2 {
 					if (wayStart < 0){
 						wayStart = counter;
 					}
-					
 					processWay((WayOSM) item);
 					break;
 				case GenericOsmElement.RELATION:
@@ -174,6 +176,10 @@ public class Reader2 {
 	static int cc = 0;
 	void processWay( WayOSM way ){
 		
+		if(way.getId() == 317837860){
+			logger.info("way encontrado");
+			logger.info(way.toString());
+		}
 		boolean accept= true;
 		if (way.getNodes().size() < 2){
 			accept = false;
@@ -191,7 +197,11 @@ public class Reader2 {
 		}
 		
 		long wayOsmId = way.getId();
-
+		
+		if(wayOsmId == 176337641){
+			logger.info("way ");
+			logger.info(way.toString());
+		}
 		
 		List<EdgeImpl> createdEdges = new ArrayList<EdgeImpl>();
 	 
@@ -209,35 +219,54 @@ public class Reader2 {
 	
 	private boolean acceptWay(WayOSM way){
 		String key = "highway";
+		
 		if(way.getTags().containsKey(key)){
-			
 			String tag = way.getTagValue(key);
-			
 			if(tag.equals("footway") 
 					|| tag.equals("pedestrian")
 					|| tag.equals("steps")
 					|| tag.equals("cycleway")
-					|| tag.equals("path")){				
+					|| tag.equals("path")
+					|| tag.equals("bus_guideway")
+					|| tag.equals("bridleway")
+					&& (!way.containsTagEqual("motor_vehicle", "permissive") || !way.containsTagEqual("motorcar", "permissive"))){
+				
 				return false;
 			}
-			
-			if(way.containsTagEqual(key, "track")){
-				
-				String trackType = way.getTagValue("tracktype");
-	            if (trackType != null && !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3")){
+			if(way.containsTagEqual(key, "track")){				
+				String trackType = way.getTagValue("tracktype");				
+	            if (trackType != null &&  !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3") 
+	            		|| way.containsTagEqual("motor_vehicle", "no")){
 	            	return false;
-	            }
-	                
+	            }	            
 			}
 			if (way.containsTagEqual("impassable", "yes") || way.containsTagEqual("status", "impassable")){
 				return false;
 			}
-					
+			if((way.containsValue("private") || way.containsTagEqual("access", "private") ||  way.containsTagEqual("access", "no") ) && !way.containsTagEqual("motor_vehicle", "permissive") ){
+				return false;
+			}
+			
+			/*if(way.containsTagEqual("service", "parking_aisle") && way.containsTagEqual("tunnel", "yes")){
+				return false;
+			}*/
+			
+			//
+			/*if(way.containsTagEqual("service", "driveway") && way.containsTagEqual(key, "service")){
+				return false;
+			}*/
+			
+			
+			if(way.containsTagEqual(key, "service") && way.containsTagEqual("tunnel", "passage")){
+				return false;
+			}
+						
 			return true;
 			
 		}
 		
 		if(way.containsTagEqual("route", "shuttle_train") || way.containsTagEqual("route", "ferry")){
+			
 			String motorcarTag = way.getTagValue("motorcar");
             if (motorcarTag == null)
                 motorcarTag = way.getTagValue("motor_vehicle");
@@ -255,23 +284,30 @@ public class Reader2 {
 	 	public static final int BIDIRECIONAL = 1;
 	 	public static final int REVERSE = 2;
      */
-    Collection<EdgeImpl> addOSMWay( WayOSM way, final int direcao,final TLongList osmNodeIds, final long wayOsmId ){
+    Collection<EdgeImpl> addOSMWay( WayOSM way, final int direcao,TLongList osmNodeIds, final long wayOsmId ){
         
-    	       
+    	way = schrinkWayIfGate(way);
+    	osmNodeIds = way.getNodes();
+    	
         List<EdgeImpl> newEdges = new ArrayList<EdgeImpl>(5);
     
         try{
         	int tempIndex = 0;
-        	
+        	int tmpNode = 0;
             for (int i = 1; i < osmNodeIds.size(); i++){
             	
                 long osmId = osmNodeIds.get(i);
-                int tmpNode = getNodeMap().get(osmId);
+                tmpNode = getNodeMap().get(osmId);
                 
-                if (tmpNode == EMPTY)
-                    continue;
-
+                if (tmpNode == EMPTY)                	
+                		continue;
+                
                 if (tmpNode == TOWER_NODE){
+                	if(wayOsmId == 4611879 || wayOsmId == 49850635 || wayOsmId == 29320024){
+            			//logger.info(way.toString());
+            			//logger.info("index " + tempIndex);
+            			//logger.info("size " + osmNodeIds.size());
+            		}
                 		long tmpFromNode = osmNodeIds.get(tempIndex);
                 		NodeOSM fromNode = osmNodes.get(tmpFromNode);
                 		
@@ -283,9 +319,17 @@ public class Reader2 {
                 		
                 		long fromNodeId; 
                 		long toNodeId;
+                		if((n.getLatitude() == 42.473667 && n.getLongitude() == 1.400108) || (n2.getLatitude() == 42.473667 && n2.getLongitude() == 1.400108)){
+                			logger.info("way ---- ");
+                			logger.info(way.toString());
+                			logger.info("way id " + way.getId());
+                			logger.info(fromNode.toString());
+                			logger.info(toNode.toString());
+                		}
                 		
                 		if(!getNosnoGrafo().containsKey(tmpFromNode)){
                        		graph.addNode(n);
+                       		logger.info(n.toString());
                        		getNosnoGrafo().put(tmpFromNode, n.getId());
                        		fromNodeId = n.getId();
                     		
@@ -295,6 +339,7 @@ public class Reader2 {
                 		
                 		if(!getNosnoGrafo().containsKey(tempToNode)){
                 			graph.addNode(n2);
+                			logger.info(n2.toString());
                 			getNosnoGrafo().put(tempToNode, n2.getId());
                 			toNodeId = n2.getId();
                 		}else{
@@ -320,7 +365,7 @@ public class Reader2 {
                 		}else if(WayOSM.REVERSE == direcao){
                 			 EdgeImpl e = new EdgeImpl(wayOsmId, toNodeId,fromNodeId, 1, "teste", geometry);
                 			 newEdges.add(e);
-                			 logger.info("node reverse +++");
+                			// logger.info("node reverse +++");
                 		}
                 		   
                 		  tempIndex = i;
@@ -332,13 +377,14 @@ public class Reader2 {
                 }
 
             }
-         
             
             // caso o nó inicial seja tower e os outros nós sejam ponta de ramo ou o nó tenha varios towernodes porém os nós finais sejam ponta de ramo
             if(tempIndex == 0 || tempIndex < osmNodeIds.size()-1){
             	long osmId = osmNodeIds.get(tempIndex);
-                int tmpNode = getNodeMap().get(osmId);
+            	tmpNode = getNodeMap().get(osmId);
+            
                 if(tmpNode == TOWER_NODE){
+                	
                 	long tmpFromNode = osmNodeIds.get(tempIndex);
             		NodeOSM fromNode = osmNodes.get(tmpFromNode);
             		
@@ -352,6 +398,7 @@ public class Reader2 {
             		long toNodeId;
             		if(!getNosnoGrafo().containsKey(tmpFromNode)){
                    		graph.addNode(n);
+                   		logger.info(n.toString());
                    		getNosnoGrafo().put(tmpFromNode, n.getId());
                    		fromNodeId = n.getId();
                 		
@@ -361,6 +408,7 @@ public class Reader2 {
             		
             		if(!getNosnoGrafo().containsKey(tempToNode)){
             			graph.addNode(n2);
+            			logger.info(n2.toString());
             			getNosnoGrafo().put(tempToNode, n2.getId());
             			toNodeId = n2.getId();
             		}else{
@@ -388,8 +436,6 @@ public class Reader2 {
              			 newEdges.add(e);
              		}
             		
-                }else{
-                	logger.info(way.toString());
                 }
             }
             
@@ -399,6 +445,23 @@ public class Reader2 {
        
         return newEdges;
     }
+    
+    WayOSM schrinkWayIfGate(WayOSM way){
+    	TLongList osmNodeIds = way.getNodes();
+    	TLongList tmpsIds = new TLongArrayList(5);
+    	for (int i = 0; i < osmNodeIds.size(); i++){
+    		long tmpFromNode = osmNodeIds.get(i);
+    		NodeOSM fromNode = osmNodes.get(tmpFromNode);
+    		tmpsIds.add(osmNodeIds.get(i));
+    		if(fromNode.hasTag("barrier")){
+    			way.setNodes(tmpsIds);
+    			return way;
+    		}
+    	}
+    	
+    	return way; 
+    }
+    
     EdgeImpl addEdge( int fromIndex, int toIndex, List<Point> pointList, long wayOsmId )
     {
         // sanity checks
