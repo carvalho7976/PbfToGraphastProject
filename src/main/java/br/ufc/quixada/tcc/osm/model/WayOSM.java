@@ -53,4 +53,5 @@ public class WayOSM extends GenericOsmElement {
 	}
 	 
 	 
+	 
 }

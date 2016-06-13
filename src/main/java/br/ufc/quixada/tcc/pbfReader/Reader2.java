@@ -65,6 +65,8 @@ public class Reader2 {
 		
 		logger.info("creating graph");
 		createGraph(osmFile);
+		
+		
 		graph.save();
 	
 		logger.info("nodes " + graph.getNumberOfNodes());
@@ -229,16 +231,19 @@ public class Reader2 {
 					|| tag.equals("path")
 					|| tag.equals("bus_guideway")
 					|| tag.equals("bridleway")
-					&& (!way.containsTagEqual("motor_vehicle", "permissive") || !way.containsTagEqual("motorcar", "permissive"))){
+					&& (!way.containsTagEqual("motor_vehicle", "permissive") || !way.containsTagEqual("motor_vehicle", "yes") || !way.containsTagEqual("motorcar", "permissive"))){
 				
 				return false;
 			}
 			if(way.containsTagEqual(key, "track")){				
 				String trackType = way.getTagValue("tracktype");				
-	            if (trackType != null &&  !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3") 
-	            		|| way.containsTagEqual("motor_vehicle", "no")){
+	            if (trackType != null &&  !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3") || ( way.containsTagEqual("motor_vehicle", "no") || way.containsTagEqual("surface", "ground"))){
 	            	return false;
-	            }	            
+	            }
+	            if(way.hasJustOneTag()){
+	            	return false;
+	            }
+	          
 			}
 			if (way.containsTagEqual("impassable", "yes") || way.containsTagEqual("status", "impassable")){
 				return false;
@@ -453,7 +458,7 @@ public class Reader2 {
     		long tmpFromNode = osmNodeIds.get(i);
     		NodeOSM fromNode = osmNodes.get(tmpFromNode);
     		tmpsIds.add(osmNodeIds.get(i));
-    		if(fromNode.hasTag("barrier")){
+    		if(fromNode.hasTag("barrier") && (!fromNode.containsTagEqual("motorcar", "yes") )){
     			way.setNodes(tmpsIds);
     			return way;
     		}

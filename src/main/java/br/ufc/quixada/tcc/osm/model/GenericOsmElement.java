@@ -46,6 +46,9 @@ public class GenericOsmElement {
 	public Map<String, Object> getTags() {
 	        return properties;
 	}
+	public boolean hasJustOneTag(){
+		return properties.values().size() < 2;
+	}
 
 	public void removeTag( String name ){
 		properties.remove(name);

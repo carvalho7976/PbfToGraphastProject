@@ -31,7 +31,7 @@ public class TestImport {
 		 
 		
 	
-	File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
+	File file = new File(Configuration.USER_HOME + "/andorra-latest.osm.pbf");
 	if(file != null){
 		 Reader2 r = new Reader2(file, graphastTmpDir);
 		 
