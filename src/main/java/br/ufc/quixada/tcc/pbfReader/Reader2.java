@@ -237,15 +237,12 @@ public class Reader2 {
 			}
 			if(way.containsTagEqual(key, "track")){				
 				String trackType = way.getTagValue("tracktype");				
-	            if (trackType != null &&  !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3") || ( way.containsTagEqual("motor_vehicle", "no") || way.containsTagEqual("surface", "ground"))){
+	            if (trackType != null &&  !trackType.equals("grade1") && !trackType.equals("grade2") && !trackType.equals("grade3")){
 	            	return false;
-	            }
-	            if(way.hasJustOneTag()){
-	            	return false;
-	            }
+	            }     
 	          
 			}
-			if (way.containsTagEqual("impassable", "yes") || way.containsTagEqual("status", "impassable")){
+			if (way.containsTagEqual("impassable", "yes") || way.containsTagEqual("status", "impassable") || ( way.containsTagEqual("motor_vehicle", "no") || way.containsTagEqual("surface", "ground"))){
 				return false;
 			}
 			if((way.containsValue("private") || way.containsTagEqual("access", "private") ||  way.containsTagEqual("access", "no") ) && !way.containsTagEqual("motor_vehicle", "permissive") ){
