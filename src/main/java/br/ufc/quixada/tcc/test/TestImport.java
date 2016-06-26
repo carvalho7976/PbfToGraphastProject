@@ -15,7 +15,7 @@ import org.graphast.model.Graph;
 import org.graphast.model.GraphBounds;
 import org.graphast.model.GraphImpl;
 
-import br.ufc.quixada.tcc.pbfReader.Reader2;
+import br.ufc.quixada.tcc.pbfReader.Reader;
 
 public class TestImport {
 	
@@ -31,9 +31,9 @@ public class TestImport {
 		 
 		
 	
-	File file = new File(Configuration.USER_HOME + "/andorra-latest.osm.pbf");
+	File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
 	if(file != null){
-		 Reader2 r = new Reader2(file, graphastTmpDir);
+		 Reader r = new Reader(file, graphastTmpDir);
 		 
 		 GraphBounds bounds = r.execute();
 		 bounds.save();
