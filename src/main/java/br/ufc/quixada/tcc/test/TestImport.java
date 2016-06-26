@@ -15,7 +15,7 @@ import org.graphast.model.Graph;
 import org.graphast.model.GraphBounds;
 import org.graphast.model.GraphImpl;
 
-import br.ufc.quixada.tcc.pbfReader.Reader;
+import br.ufc.quixada.tcc.Reader.Reader;
 
 public class TestImport {
 	

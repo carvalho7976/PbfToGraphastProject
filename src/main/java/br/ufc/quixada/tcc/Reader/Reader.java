@@ -1,4 +1,4 @@
-package br.ufc.quixada.tcc.pbfReader;
+package br.ufc.quixada.tcc.Reader;
 
 import java.io.File;
 import java.io.IOException;

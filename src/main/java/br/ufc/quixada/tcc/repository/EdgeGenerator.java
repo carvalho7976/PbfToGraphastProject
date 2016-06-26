@@ -9,9 +9,9 @@ import org.graphast.model.NodeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import br.ufc.quixada.tcc.Reader.PbfReaderExample;
 import br.ufc.quixada.tcc.osm.model.NodeOSM;
 import br.ufc.quixada.tcc.osm.model.WayOSM;
-import br.ufc.quixada.tcc.pbfReader.PbfReaderExample;
 import gnu.trove.list.TLongList;
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 
