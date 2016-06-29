@@ -1,18 +1,13 @@
 package br.ufc.quixada.tcc.osm.model;
 
-import java.io.BufferedInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
+
 
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.PbfReader;
 import br.ufc.quixada.tcc.readerbasedOnOsmosis.Sink;
@@ -37,15 +32,17 @@ public class OSMInputFile implements Sink, Closeable{
 		return this;
 	}
 	private void openPBFReader( InputStream stream )    {
+		
 		hasIncomingData = true;
 		if (workerThreads <= 0)
-			workerThreads = 2;
+			workerThreads = 8;
 
 		PbfReader reader = new PbfReader(stream, this, workerThreads);
 		pbfReaderThread = new Thread(reader, "PBF Reader");
 		pbfReaderThread.start();
 	}
 
+	
 	public void process(GenericOsmElement item) {
 		try {
 
@@ -140,6 +137,18 @@ public class OSMInputFile implements Sink, Closeable{
 	}
 	
 	public GenericOsmElement getNext(){
+		  GenericOsmElement item;
+	       
+	       item = getNextPBF();
+	      
+	       if (item != null)
+	            return item;
+
+	        eof = true;
+	        return null;
+	 }
+	  private GenericOsmElement getNextPBF() {
+		  
 	        GenericOsmElement next = null;
 	        while (next == null)
 	        {
@@ -162,6 +171,11 @@ public class OSMInputFile implements Sink, Closeable{
 	        }
 	        return next;
 	    }
+	 
+	public boolean isEOF(){
+	        return eof;
+	    }
+	
 
 
 }

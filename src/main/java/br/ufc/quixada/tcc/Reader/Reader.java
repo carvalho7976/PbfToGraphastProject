@@ -27,7 +27,7 @@ import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 
 public class Reader {
-	private static int workers = 8;
+	private static int workers = -1;
 
 	protected static final int EMPTY = -1;
 	// pillar node is >= 3
@@ -82,9 +82,9 @@ public class Reader {
 			
 			GenericOsmElement item;
 			int i = 0;
+			System.out.println("antes laço");
 			while ((item = in.getNext()) != null){
 				
-
 				if(item.isType(GenericOsmElement.NODE)){
 					addToNodeList((NodeOSM) item);
 				}
@@ -104,6 +104,8 @@ public class Reader {
 					}
 				}
 			}
+			System.out.println("depois laço");
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally {
@@ -364,7 +366,7 @@ public class Reader {
             		long toNodeId;
             		if(!getNosnoGrafo().containsKey(tmpFromNode)){
                    		graph.addNode(n);
-                   		logger.info(n.toString());
+                   		//logger.info(n.toString());
                    		getNosnoGrafo().put(tmpFromNode, n.getId());
                    		fromNodeId = n.getId();
                 		
@@ -374,7 +376,7 @@ public class Reader {
             		
             		if(!getNosnoGrafo().containsKey(tempToNode)){
             			graph.addNode(n2);
-            			logger.info(n2.toString());
+            			//logger.info(n2.toString());
             			getNosnoGrafo().put(tempToNode, n2.getId());
             			toNodeId = n2.getId();
             		}else{

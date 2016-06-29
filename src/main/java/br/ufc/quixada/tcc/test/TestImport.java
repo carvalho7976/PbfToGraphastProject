@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URISyntaxException;
+import java.util.Date;
 
 import org.graphast.config.Configuration;
 import org.graphast.importer.OSMImporterImpl;
@@ -22,26 +23,33 @@ public class TestImport {
 	
 	public static void main(String[] args) throws IOException, URISyntaxException {
 		
+		double initialTime = System.currentTimeMillis();
+
+		
+		
 		TestImport t = new TestImport();
 		 String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
 
-		// OSMImporterImpl test = new OSMImporterImpl("berlin_small_slice.osm.pbf", graphastTmpDir);
+		//OSMImporterImpl test = new OSMImporterImpl("azores-latest.osm.pbf", graphastTmpDir);
 		// GraphBounds bounds = test.execute();
 		//bounds.save();
 		 
 		
 	
-	File file = new File(Configuration.USER_HOME + "/monaco-latest.osm.pbf");
+	File file = new File(Configuration.USER_HOME + "/azores-latest.osm.pbf");
 	if(file != null){
 		 Reader r = new Reader(file, graphastTmpDir);
 		 
 		 GraphBounds bounds = r.execute();
 		 bounds.save();
 	} 
-		
+	double finalTime = System.currentTimeMillis();
+	double total = finalTime - initialTime;
+	
+	System.out.println("Total time : " + total);
 		 
-		 Graph graph = new GraphImpl(Configuration.USER_HOME + "/graphast/tmp/osmimporter");
-		graph.load();
+		 //Graph graph = new GraphImpl(Configuration.USER_HOME + "/graphast/tmp/osmimporter");
+		//graph.load();
 	}
 	public File createDataFile(String dataFileName) {
 		try {
