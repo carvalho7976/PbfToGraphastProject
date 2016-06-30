@@ -30,19 +30,20 @@ public class TestImport {
 		TestImport t = new TestImport();
 		 String graphastTmpDir = Configuration.USER_HOME + "/graphast/tmp/osmimporter";
 
-		//OSMImporterImpl test = new OSMImporterImpl("azores-latest.osm.pbf", graphastTmpDir);
-		// GraphBounds bounds = test.execute();
-		//bounds.save();
+	//	OSMImporterImpl test = new OSMImporterImpl("berlin-latest.osm.pbf", graphastTmpDir);
+	//	 GraphBounds bounds = test.execute();
+	//	bounds.save();
 		 
 		
 	
-	File file = new File(Configuration.USER_HOME + "/azores-latest.osm.pbf");
+	File file = new File(Configuration.USER_HOME + "/bulgaria-latest.osm.pbf");
 	if(file != null){
 		 Reader r = new Reader(file, graphastTmpDir);
 		 
 		 GraphBounds bounds = r.execute();
 		 bounds.save();
-	} 
+	}
+	 
 	double finalTime = System.currentTimeMillis();
 	double total = finalTime - initialTime;
 	

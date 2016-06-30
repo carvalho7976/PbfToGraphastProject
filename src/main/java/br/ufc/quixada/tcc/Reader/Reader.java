@@ -4,7 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.graphast.geometry.Point;
 import org.graphast.model.EdgeImpl;
@@ -23,7 +29,6 @@ import br.ufc.quixada.tcc.repository.Repository;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TLongLongHashMap;
-import it.unimi.dsi.fastutil.longs.Long2IntArrayMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap;
 
 public class Reader {
@@ -40,8 +45,9 @@ public class Reader {
 	public static Repository nodesList = new NodeRepository();
 	public  Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	private Long2IntArrayMap osmNodeIdToInternalNodeMap;
-	private Long2ObjectArrayMap<NodeOSM> osmNodes;
+	private Map<Long, Integer> osmNodeIdToInternalNodeMap;
+	
+	private Map<Long,NodeOSM > osmNodes;
 	private TLongLongHashMap nosNoGrafo;
 	private File osmFile;
 	private GraphImpl graph;
@@ -50,8 +56,8 @@ public class Reader {
 	public Reader(File osmFile, String graphHastTmpDir) {
 		this.graphastTmpDir = graphHastTmpDir;
 		this.osmFile = osmFile;
-		osmNodeIdToInternalNodeMap = new Long2IntArrayMap();
-		osmNodes = new Long2ObjectArrayMap<NodeOSM>();
+		osmNodeIdToInternalNodeMap = Collections.synchronizedMap( new ConcurrentHashMap<Long, Integer>());
+		osmNodes = new ConcurrentHashMap<Long, NodeOSM>();
 		nosNoGrafo = new TLongLongHashMap();
 		 this.graph = new GraphImpl(graphastTmpDir);
 	}
@@ -59,7 +65,14 @@ public class Reader {
 	public GraphImpl execute() throws IOException{
 		
 		logger.info("processing... highways");
+		double initialTime = System.currentTimeMillis();
+		
 		processHighWays(osmFile);
+		
+		double finalTime = System.currentTimeMillis();
+		double total = finalTime - initialTime;
+		
+		logger.info("time: " + total);
 		
 		logger.info("creating graph");
 		createGraph(osmFile);
@@ -75,6 +88,7 @@ public class Reader {
 	void processHighWays(File osmFile) throws IOException{
 
 		OSMInputFile in = null;
+		ExecutorService executor =  Executors.newFixedThreadPool(8);
 
 		try	{
 			in = new OSMInputFile(osmFile).setWorkerThreads(workers).open();
@@ -84,32 +98,53 @@ public class Reader {
 			int i = 0;
 			System.out.println("antes laço");
 			while ((item = in.getNext()) != null){
+				final GenericOsmElement item2 = item;
 				
-				if(item.isType(GenericOsmElement.NODE)){
-					addToNodeList((NodeOSM) item);
-				}
-				if (item.isType(GenericOsmElement.WAY)){
-					
-					final WayOSM way = (WayOSM) item;
-
-					//ignore broken or complex geometry
-					if (way.getNodes().size() >= 2 && acceptWay(way)){
-						
-						TLongList wayNodes = way.getNodes();
-						int s = wayNodes.size();
-						for (int index = 0; index < s; index++){
-							prepareHighwayNode(wayNodes.get(index));
+						if(item2.isType(GenericOsmElement.NODE)){						
+							 					
+							executor.execute(new Runnable() {
+								
+								public void run() {
+									addToNodeList((NodeOSM) item2);
+								}
+							});
 						}
+						if (item2.isType(GenericOsmElement.WAY)){
+							
+							final WayOSM way = (WayOSM) item2;
+							       	//ignore broken or complex geometry
+										if (way.getNodes().size() >= 2 && acceptWay(way)){
+											
+											TLongList wayNodes = way.getNodes();
+											int s = wayNodes.size();
+											for (int index = 0; index < s; index++){
+												prepareHighwayNode(wayNodes.get(index));
+											}
 
-					}
-				}
+										}
+						         }
+			}
+			executor.shutdown();
+			System.out.println("esperado terminar....");
+			executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);		
+			executor.shutdownNow();
+			if(!executor.isTerminated()){
+				System.out.println("não terminou");;
 			}
 			System.out.println("depois laço");
+			System.out.println("numero nós " + osmNodes.size());
 
 		}catch(Exception e){
 			e.printStackTrace();
-		}finally {
-			in.close();
+		}finally {			 
+			 try
+		        {
+		            if (in != null)
+		                in.close();
+		        } catch (IOException ex)
+		        {
+		            throw new RuntimeException("Couldn't close resource", ex);
+		        }
 		}
 	}
 
@@ -128,6 +163,7 @@ public class Reader {
 			{
 				switch (item.getType()){
 				case GenericOsmElement.NODE:
+					//addToNodeList((NodeOSM) item);
 					break;
 				case GenericOsmElement.WAY:
 					if (wayStart < 0){
@@ -157,23 +193,32 @@ public class Reader {
 
 	}
 	void prepareHighwayNode( long osmId ){
-		
-		if(getNodeMap().containsKey(osmId)){
-			getNodeMap().put(osmId, TOWER_NODE);
-		}else{
-			getNodeMap().put(osmId, PILLAR_NODE);
+		try{
+			Integer tmpIndex = getNodeMap().get(osmId);
+	        if (tmpIndex == null){
+	            getNodeMap().put(osmId, PILLAR_NODE);
+	        } else{
+	            getNodeMap().put(osmId, TOWER_NODE);
+	        }
+			
+		}catch(Exception e){
+			e.printStackTrace();
+			System.out.println("osmid " + osmId);
 		}
+		 	
+		
 	}
 	
-	void addToNodeList(NodeOSM node){
-		osmNodes.put(node.getId(), node);
+	void addToNodeList( NodeOSM node){
+		 osmNodes.put(node.getId(), node);		
 	}
 
 
 	/**
 	 * Maps OSM IDs (long) to internal node IDs (int)
+	 * @return 
 	 */
-	protected Long2IntArrayMap getNodeMap(){
+	protected Map<Long, Integer> getNodeMap(){
 		return osmNodeIdToInternalNodeMap;
 	}
 	static int cc = 0;
